@@ -6,12 +6,10 @@ import com.example.StudyHub_backend_bord.common.dto.PostResponseDto;
 import com.example.StudyHub_backend_bord.common.dto.PostUpdateDto;
 import com.example.StudyHub_backend_bord.common.exception.NotFound;
 import com.example.StudyHub_backend_bord.common.web.context.GatewayRequestHeaderUtils;
-import com.example.StudyHub_backend_bord.domain.entity.BoardPostCount;
 import com.example.StudyHub_backend_bord.domain.entity.Post;
 import com.example.StudyHub_backend_bord.domain.entity.PostComment;
-import com.example.StudyHub_backend_bord.domain.repository.BoardPostCountRepository;
-import com.example.StudyHub_backend_bord.domain.repository.PostCommentRepository;
 import com.example.StudyHub_backend_bord.domain.repository.PostRepository;
+import com.example.StudyHub_backend_bord.event.dto.PostCommentEvent;
 import com.example.StudyHub_backend_bord.event.producer.KafkaMessageProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,47 +27,30 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final PostCommentRepository postCommentRepository;
-    private final BoardPostCountRepository boardPostCountRepository;
     private final KafkaMessageProducer kafkaMessageProducer;
 
     // 게시글 생성
     @Transactional
     public void createPost(PostCreateDto createDto) {
-        Post post = createDto.toEntity();
-        postRepository.save(post);
-//        log.info(" PostService.createPost() 진입"); // 무조건 찍혀야 함
-//
-//        Post post = createDto.toEntity();
-//        log.info(" Post 엔티티 생성: {}", post);
-//
-//        postRepository.save(post);
-//        log.info(" 저장 완료");
-        // 게시글 수 증가 시도
-        int result = boardPostCountRepository.increase(createDto.getBoardId());
-
-        // 만약 증가 실패하면 (게시판 글 수가 없던 경우)
-        if (result == 0) {
-            boardPostCountRepository.save(
-                    BoardPostCount.init(createDto.getBoardId(), 1L)
-            );
-        }
+        Post post = createDto.toEntity();        // DTO → Entity 변환
+        postRepository.save(post);               // DB에 저장
     }
 
-    // 댓글 추가 (Kafka 이벤트 발행은 테스트 시 주석 가능)
+    // 댓글 추가 + Kafka 메시지 발행
     @Transactional
     public void addPostComment(PostCommentCreateDto createDto) {
+        // 댓글이 달릴 게시글 조회
         Post post = postRepository.findById(createDto.getPostId())
                 .orElseThrow(() -> new NotFound("포스팅 글을 찾을 수 없습니다."));
 
-        PostComment postComment = createDto.toEntity(post);
-        postCommentRepository.save(postComment);
-        post.addComment(postComment);
-
-        // Kafka 주석 처리 중
+//        PostComment postComment = createDto.toEntity(post);   // DTO → Entity 변환
+//        postCommentRepository.save(postComment);          // DB에 댓글 저장
+//        post.addComment(postComment);                     // Post 엔티티에도 댓글 추가 (연관관계 설정)
+//
+//        // Kafka 이벤트 발행 (댓글 생성 이벤트)
 //        kafkaMessageProducer.send(
-//                PostCommentEvent.Topic,
-//                PostCommentEvent.fromEntity("Create", postComment)
+//                PostCommentEvent.Topic,                   // 토픽명
+//                PostCommentEvent.fromEntity("Create", postComment) // 이벤트 객체 생성
 //        );
     }
 

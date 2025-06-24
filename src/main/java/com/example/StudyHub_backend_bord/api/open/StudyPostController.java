@@ -49,13 +49,18 @@ public class StudyPostController {
         List<PostResponseDto> postList = postService.getPostListByStudyId(studyId);
         return ResponseEntity.ok(postList);
     }
-
     //게시글 상세조회
     @GetMapping("/studies/{studyId}/posts/{postId}")
     public ResponseEntity<PostResponseDto> getPostDetail(@PathVariable Long studyId, @PathVariable Long postId) {
         PostResponseDto post = postService.getPostDetail(postId);
         return ResponseEntity.ok(post);
     }
+//    @GetMapping("/studies/{studyId}/posts/count")
+//    public ResponseEntity<Long> getPostCount(@PathVariable Long studyId) {
+//        Long count = postService.getPostCount(studyId);
+//        return ResponseEntity.ok(count);
+//    }
+
     // 게시글 수정
     @PutMapping("/studies/{studyId}/posts/{postId}")
     public ApiResponseDto<String> updatePost(

@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Slf4j
@@ -24,6 +26,11 @@ public class PostCreateDto {
 
     private Long studyId;
 
+//    @NotNull(message = "boardId는 필수입니다.")
+    private Long boardId;
+
+    private LocalDateTime createdAt;
+
     public Post toEntity() {
         Post post = new Post();
         post.setUserId(GatewayRequestHeaderUtils.getUserIdOrThrowException());
@@ -37,6 +44,9 @@ public class PostCreateDto {
         post.setType(this.type);
 
         post.setStudyId(this.studyId);
+        post.setBoardId(this.boardId);
+
+        post.setCreatedAt(LocalDateTime.now());
 
         // boardType 설정 (studyId가 있을 경우 "study"로 설정, 없으면 "main")
         if (this.studyId != null) {

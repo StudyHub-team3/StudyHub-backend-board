@@ -61,4 +61,13 @@ public class PostController {
         postService.deletePost(postId);
         return ApiResponseDto.defaultOk();
     }
+    @PostMapping("/boards/{boardId}/posts")
+    public ApiResponseDto<String> createBoardPost(
+            @PathVariable Long boardId,
+            @RequestBody @Valid PostCreateDto dto) {
+
+        dto.setBoardId(boardId);  //  여기서 반드시 넣어줘야 함!
+        postService.createPost(dto);
+        return ApiResponseDto.defaultOk();
+    }
 }
