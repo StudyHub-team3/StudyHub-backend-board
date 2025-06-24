@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: studyhub-backend
+  namespace: argocd    
+
+spec:
+  project: default   
+
+  sources:
+    - repoURL: https://github.com/wldms3953/StudyHub-backend-config.git
+      targetRevision: main  
+      path: kube/backend-post/prd 
+
+    - repoURL: https://github.com/wldms3953/StudyHub-backend-config.git
+      targetRevision: main
+      path: kube/backend-user/prd
+
+    - repoURL: https://github.com/wldms3953/StudyHub-backend-config.git
+      targetRevision: main
+      path: kube/api-gateway/prd
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: studyhub   
+
+  syncPolicy:
+    automated:
+      prune: true     
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true 
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  clusterIP: None
+
+---
+
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: post-mysql-service
+subsets:
+  - addresses:
+      - ip: 192.168.0.46
+    ports:
+      - port: 13309

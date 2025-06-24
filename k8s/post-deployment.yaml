@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-post-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-post-service
+  template:
+    metadata:
+      labels:
+        app: backend-post-service
+    spec:
+      containers:
+        - name: backend-post-service
+          image: zhiyin22/k8s-backend-post:0.0.1 
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /backend/post/v1/k8s/livenes  
+              port: 8080
+            initialDelaySeconds: 30    
+            periodSeconds: 5           
+            failureThreshold: 3      
+            timeoutSeconds: 3       
+          readinessProbe:            
+            httpGet:
+              path: /backend/post/v1/k8s/readiness  
+              port: 8080
+            initialDelaySeconds: 30    
+            periodSeconds: 5           
+            failureThreshold: 3        
+            timeoutSeconds: 3          
+
+          volumeMounts:
+            - name: backend-post-config-volume
+              mountPath: /etc/config
+              readOnly: true
+            - name: backend-post-secret-volume
+              mountPath: /etc/secret
+              readOnly: true
+
+      volumes:
+        - name: backend-post-config-volume
+          configMap:
+            name: backend-post-config
+            items:
+              - key: application-dev.yml
+                path: application-dev.yml
+        - name: backend-post-secret-volume
+          secret:
+            secretName: backend-post-secret
+            items:
+              - key: application-secret.yml
+                path: application-secret.yml
