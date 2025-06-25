@@ -50,3 +50,21 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.register('getAppName') {
+	group = 'ci'
+	description = 'Prints the root project name'
+	doLast {
+		println rootProject.name
+	}
+}
+
+tasks.register('getAppVersion') {
+	group = 'ci'
+	description = 'Prints the project version'
+	doLast {
+		println project.version
+	}
+}
+
+version = version ?: '0.1.0-SNAPSHOT'
